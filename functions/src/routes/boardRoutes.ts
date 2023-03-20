@@ -2,6 +2,7 @@ import express, {Request, Response} from "express";
 import { getClient } from '../db';
 import Board from '../models/board';
 import {ObjectId} from "mongodb";
+import { BoardPost } from '../models/board';
 
 export const boardRoutes = express.Router();
 
@@ -50,26 +51,41 @@ boardRoutes.post("/",async (req:Request, res:Response) => {
     }
 });
 
-boardRoutes.put("/:id",async (res:Response, req:Request) => {
+boardRoutes.get("/boardposts/:id", async (req:Request, res:Response) => {
     const id = req.params.id;
-    const board = req.body as Board
-    delete board._id
-
-    try {
+    try{
         const client = await getClient()
-        const result = await client.db("gravebook").collection<Board>("boards").replaceOne({_id: new ObjectId(id)}, board);
+        const result = await client.db("gravebook").collection("posts").find({boardId: id}).toArray();
 
-        if(result.modifiedCount === 0){
-            return res.status(404).send("Not found");
+        if(!result) {
+            return res.status(404).send("Board not found")
         }
-        else {
-            board._id = new ObjectId(id);
-            return res.json(board)
-        }
-    } catch(error) {
+        return res.status(200).json(result)
+    } catch(error){
         return res.status(500).send(error)
     }
 });
+
+boardRoutes.post("/boardposts/:id",async (req:Request, res:Response) => {
+    const id = req.params.id
+
+    const board = {
+        boardId: id,
+        from: req.body.from,
+        text: req.body.text
+    } as BoardPost;
+
+    try {
+        const client = await getClient()
+
+        await client.db("gravebook").collection<BoardPost>("posts").insertOne(board);
+
+        return res.status(201).json(board);
+    } catch(error){
+        return res.status(500).send(error)
+    }
+});
+
 
 boardRoutes.delete("/:id", async (req:Request, res:Response) => {
     const id = req.params.id;
