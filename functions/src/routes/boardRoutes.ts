@@ -137,3 +137,26 @@ boardRoutes.get("/boards/:name", async (req: Request, res: Response) => {
     return res.status(500).send(error);
   }
 });
+
+boardRoutes.post("/whatever", async (req: Request, res: Response) => {
+  const id = req.params.id;
+
+  const board = {
+    boardId: id,
+    from: req.body.from,
+    text: req.body.text,
+  } as BoardPost;
+
+  try {
+    const client = await getClient();
+
+    await client
+      .db("gravebook")
+      .collection<BoardPost>("posts")
+      .insertOne(board);
+
+    return res.status(201).json(board);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
