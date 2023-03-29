@@ -12,6 +12,7 @@ export default interface Board {
 }
 
 export interface BoardPost {
+    _id: ObjectId,
     boardId: string,
     from: string,
     text: string,
