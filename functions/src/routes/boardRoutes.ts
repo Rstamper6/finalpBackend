@@ -83,6 +83,7 @@ boardRoutes.post("/boardposts/:id", async (req: Request, res: Response) => {
     boardId: id,
     from: req.body.from,
     text: req.body.text,
+    file: req.body.file,
   } as BoardPost;
 
   try {
