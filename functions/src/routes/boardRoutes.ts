@@ -102,6 +102,25 @@ boardRoutes.post("/boardposts/:id", async (req: Request, res: Response) => {
   }
 });
 
+boardRoutes.delete("/boardposts/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  try {
+    const client = await getClient();
+    const result = await client
+      .db("gravebook")
+      .collection<BoardPost>("posts")
+      .deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Not Found" });
+    } else {
+      return res.status(204).end();
+    }
+  } catch (error) {
+    console.error("Could not complete", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 boardRoutes.delete("/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
   try {
