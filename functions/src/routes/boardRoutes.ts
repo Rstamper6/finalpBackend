@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import { getClient } from "../db";
 import Board from "../models/board";
 import { ObjectId } from "mongodb";
-import { BoardPost } from "../models/board";
+import { BoardPost } from '../models/board';
 
 export const boardRoutes = express.Router();
 
@@ -81,10 +81,12 @@ boardRoutes.post("/boardposts/:id", async (req: Request, res: Response) => {
 
   const board = {
     boardId: id,
+    user: req.body.user,
     from: req.body.from,
     text: req.body.text,
     file: req.body.file,
   } as BoardPost;
+  // const board = req.body as BoardPost;
 
   try {
     const client = await getClient();
@@ -157,24 +159,20 @@ boardRoutes.get("/boards/:name", async (req: Request, res: Response) => {
   }
 });
 
-boardRoutes.post("/whatever", async (req: Request, res: Response) => {
+boardRoutes.get("/user/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
-
-  const board = {
-    boardId: id,
-    from: req.body.from,
-    text: req.body.text,
-  } as BoardPost;
-
   try {
     const client = await getClient();
-
-    await client
+    const result = await client
       .db("gravebook")
       .collection<BoardPost>("posts")
-      .insertOne(board);
+      .find({ "user.uid": id })
+      .toArray();
 
-    return res.status(201).json(board);
+    if (!result) {
+      return res.status(404).send("Boards not found");
+    }
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).send(error);
   }
