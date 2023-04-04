@@ -2,12 +2,12 @@ import express, { Request, Response } from "express";
 import { getClient } from "../db";
 import Board from "../models/board";
 import { ObjectId } from "mongodb";
-import { BoardPost } from '../models/board';
+import { BoardPost } from "../models/board";
 
 export const boardRoutes = express.Router();
 
 boardRoutes.get("/", async (req: Request, res: Response) => {
-  //getting all the data form the database
+  //gets all the board routes
   try {
     const client = await getClient();
     const results = await client
@@ -26,7 +26,7 @@ boardRoutes.get("/", async (req: Request, res: Response) => {
 
 boardRoutes.get("/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
-  //getting everything that matches a certain
+  //getting everything that matches a certain id
   try {
     const client = await getClient();
     const result = await client
@@ -59,6 +59,7 @@ boardRoutes.post("/", async (req: Request, res: Response) => {
 
 boardRoutes.get("/boardposts/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
+  //get boardpost based on board id (not post id)
   try {
     const client = await getClient();
     const result = await client
@@ -78,7 +79,7 @@ boardRoutes.get("/boardposts/:id", async (req: Request, res: Response) => {
 
 boardRoutes.post("/boardposts/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
-
+  //creates a new boardpost
   const board = {
     boardId: id,
     user: req.body.user,
@@ -102,24 +103,27 @@ boardRoutes.post("/boardposts/:id", async (req: Request, res: Response) => {
   }
 });
 
-boardRoutes.delete("/boardposts/:id", async (req: Request, res: Response) => {
-  const id = req.params.id;
-  try {
-    const client = await getClient();
-    const result = await client
-      .db("gravebook")
-      .collection<BoardPost>("posts")
-      .deleteOne({ _id: new ObjectId(id) });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Not Found" });
-    } else {
-      return res.status(204).end();
+boardRoutes.delete(
+  "/boardposts/:id",
+  async (req: Request, res: Response): Promise<Response> => {
+    const id = req.params.id;
+    try {
+      const client = await getClient();
+      const result = await client
+        .db("gravebook")
+        .collection<BoardPost>("posts")
+        .deleteOne({ _id: new ObjectId(id) });
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ message: "Not Found" });
+      } else {
+        return res.status(200).send("Deleted");
+      }
+    } catch (error) {
+      console.error("Could not complete", error);
+      return res.status(500).json({ message: "Internal Server Error" });
     }
-  } catch (error) {
-    console.error("Could not complete", error);
-    return res.status(500).json({ message: "Internal Server Error" });
   }
-});
+);
 
 boardRoutes.delete("/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
@@ -132,7 +136,7 @@ boardRoutes.delete("/:id", async (req: Request, res: Response) => {
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Not Found" });
     } else {
-      return res.status(204).end();
+      return res.status(200).end();
     }
   } catch (error) {
     console.error("Could not complete", error);
@@ -160,6 +164,7 @@ boardRoutes.get("/boards/:name", async (req: Request, res: Response) => {
 });
 
 boardRoutes.get("/user/:id", async (req: Request, res: Response) => {
+  //gets all the posts created by the user
   const id = req.params.id;
   try {
     const client = await getClient();
