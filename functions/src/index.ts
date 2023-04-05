@@ -1,9 +1,10 @@
 import * as functions from "firebase-functions";
-import express, {Application} from "express";
+import express, { Application } from "express";
 import cors from "cors";
-import { boardRoutes } from './routes/boardRoutes';
+import { boardRoutes } from "./routes/boardRoutes";
+import "firebase-functions/logger/compat";
 
-const app:Application = express();
+const app: Application = express();
 app.use(cors());
 app.use(express.json());
 

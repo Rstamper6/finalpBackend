@@ -136,7 +136,7 @@ boardRoutes.delete("/:id", async (req: Request, res: Response) => {
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Not Found" });
     } else {
-      return res.status(200).end();
+      return res.status(200).send("Deleted");
     }
   } catch (error) {
     console.error("Could not complete", error);
@@ -163,22 +163,48 @@ boardRoutes.get("/boards/:name", async (req: Request, res: Response) => {
   }
 });
 
-boardRoutes.get("/user/:id", async (req: Request, res: Response) => {
-  //gets all the posts created by the user
-  const id = req.params.id;
-  try {
-    const client = await getClient();
-    const result = await client
-      .db("gravebook")
-      .collection<BoardPost>("posts")
-      .find({ "user.uid": id })
-      .toArray();
+boardRoutes.get(
+  "/boardposts/byuser/:userid",
+  async (req: Request, res: Response) => {
+    //gets all the posts created by the user
+    const userid = req.params.userid;
+    try {
+      const client = await getClient();
+      const result = await client
+        .db("gravebook")
+        .collection<BoardPost>("posts")
+        .find({ "user.uid": userid })
+        .toArray();
 
-    if (!result) {
-      return res.status(404).send("Boards not found");
+      if (!result) {
+        return res.status(404).send("Board posts not found");
+      }
+      return res.status(200).json(result);
+    } catch (error) {
+      return res.status(500).send(error);
     }
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(500).send(error);
   }
-});
+);
+
+boardRoutes.get(
+  "/boards/byuser/:userid",
+  async (req: Request, res: Response) => {
+    //gets all the posts created by the user
+    const userid = req.params.userid;
+    try {
+      const client = await getClient();
+      const result = await client
+        .db("gravebook")
+        .collection<Board>("boards")
+        .find({ "user.uid": userid })
+        .toArray();
+
+      if (!result) {
+        return res.status(404).send("Boards not found");
+      }
+      return res.status(200).json(result);
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  }
+);
